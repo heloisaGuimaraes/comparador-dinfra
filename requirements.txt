@@ -1,0 +1,7 @@
+pandas
+openpyxl
+pytest
+odfpy
+streamlit
+xlsxwriter
+pyexcel_ods

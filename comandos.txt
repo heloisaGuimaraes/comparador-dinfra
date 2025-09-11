@@ -1,0 +1,15 @@
+// python -m venv comparador_orcamento_dinfra -- para criar
+
+pip install -r requirements.txt
+pip install nome_do_pacote
+
+
+// para ativar
+source dinfra/bin/activate
+
+// desatiivar
+deactivate
+
+python main.py --ref exemplos/planilha_referencia.xlsx --prop exemplos/planilha_proposta.xlsx --saida resultado.xlsx
+
+
