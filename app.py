@@ -108,15 +108,31 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
     st.write("✅ Clique em **Comparar** para processar.")
     
     if st.button("🔎 Comparar"):
-        with st.spinner("Processando os dados, por favor aguarde..."):        
-            df_ref, dict_totais_ref, df_valores_bdi_diferente_ref = carregar_planilha(ref_file)
-            df_prop, dict_totais_prop, df_valores_bdi_diferente_prop = carregar_planilha(prop_file)
+# Processa planilha de referência
+        try:
+            with st.spinner("Processando a planilha de referência, por favor aguarde..."):
+                df_ref, dict_totais_ref, df_valores_bdi_diferente_ref = carregar_planilha(ref_file)
+        except ValueError as e:
+            st.error(f"❌ Erro ao processar a planilha de referência: {e}. Revise se o arquivo está correto.")
+            st.stop()
 
-            # Comparação
-            df_relatorio, df_itens_extras_prop, df_itens_ausentes_prop, df_descontos_problema, soma_valor_global_prop, soma_valor_global_ref, dict_resumo_descontos = comparar_planilhas(df_ref, df_prop)
-            df_relatorio = organizar_relatorio(df_relatorio)
-        
-                
+        # Processa planilha de proposta
+        try:
+            with st.spinner("Processando a planilha de proposta, por favor aguarde..."):
+                df_prop, dict_totais_prop, df_valores_bdi_diferente_prop = carregar_planilha(prop_file)
+        except ValueError as e:
+            st.error(f"❌ Erro ao processar a planilha de proposta: {e}. Revise se o arquivo está correto.")
+            st.stop()
+
+        # Comparação
+        try:
+            with st.spinner("Comparando planilhas, por favor aguarde..."):
+                df_relatorio, df_itens_extras_prop, df_itens_ausentes_prop, df_descontos_problema, soma_valor_global_prop, soma_valor_global_ref, dict_resumo_descontos = comparar_planilhas(df_ref, df_prop)
+                df_relatorio = organizar_relatorio(df_relatorio)
+        except Exception as e:
+            st.error(f"❌ Erro ao comparar as planilhas: {e}.")
+            st.stop()
+
         st.success("✅ Processamento concluído!")
         df_resumo_totais_globais = construir_df_resumo_totais_globais(
             dict_totais_ref,
@@ -179,12 +195,12 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
   
         col1, col2, col3, col4 = st.columns(4)
         # with col1: metric_card("Valor Global da planilha de referência apresentado", para_real(dict_totais_ref.get("Total Geral", 0)), "#4CAF50")  # verde
-        with col1: metric_card("Valor Global da planilha proposta apresentado",  num_para_real(soma_valor_global_ref), "#4CAF50")
+        with col1: metric_card("Valor Global da planilha referência apresentado",  num_para_real(soma_valor_global_ref), "#4CAF50")
         with col2: metric_card("Valor Global da planilha proposta apresentado",  num_para_real(dict_totais_prop.get("Total Geral", 0)), "#F44336" if  dict_totais_prop.get("Total Geral", 0) > valor_comprasnet else "#4CAF50")
         with col3: metric_card("Valor Global da planilha proposta calculado",  num_para_real(soma_valor_global_prop), "#F44336" if  soma_valor_global_prop > valor_comprasnet else "#4CAF50")
         with col4: metric_card("Valor apresentado no Comprasnet", num_para_real(valor_comprasnet), "#F44336" if valor_comprasnet > soma_valor_global_prop else "#4CAF50")
         
-        st.write("### 🟡 Planilha de Proposta: Itens ausentes")
+        st.write("### 🟡 Itens de referência ausentes na Planilha de Proposta")
         st.dataframe(df_itens_ausentes_prop, use_container_width=True)   
         
         st.write("### 🟡 Planilha de Proposta: Itens a mais ou com alguma divergência na descrição")
@@ -219,10 +235,10 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
 
         st.divider()
         
-        st.write("### 📋 Planilha de Referência")
+        st.write("### 📋 Planilha de Referência utilizada")
         st.dataframe(df_ref)
 
-        st.write("### 📋 Planilha de Proposta")
+        st.write("### 📋 Planilha de Proposta utilizada")
         st.dataframe(df_prop)
 
 

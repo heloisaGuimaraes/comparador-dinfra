@@ -57,7 +57,7 @@ def normaliza_planilha(df, colunas_esperadas=COLUNAS_PLANILHA):
             break
 
     if header_idx is None:
-        raise ValueError("Cabeçalho esperado não encontrado na planilha!")
+        raise ValueError("Cabeçalho esperado não encontrado na planilha")
 
     # pega apenas as linhas a partir do cabeçalho
     df = df.iloc[header_idx:].copy()
@@ -81,7 +81,14 @@ def normaliza_planilha(df, colunas_esperadas=COLUNAS_PLANILHA):
     
 
 def carregar_planilha(caminho):
-    df = pd.read_excel(caminho, sheet_name="Orçamento Sintético", header=None)
+    
+    abas = pd.ExcelFile(caminho).sheet_names
+    aba_analisada = "Orçamento Sintético"
+
+    if aba_analisada not in abas:
+        raise ValueError(f"A aba '{aba_analisada}' não foi encontrada no arquivo. Abas disponíveis: {abas}")    
+    
+    df = pd.read_excel(caminho, sheet_name=aba_analisada, header=None)
     df = normaliza_planilha(df, COLUNAS_PLANILHA)
     
     
