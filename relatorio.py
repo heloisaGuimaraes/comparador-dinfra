@@ -50,19 +50,21 @@ def destacar_itens(df, coluna):
 
 
 
-def construir_df_resumo_totais_globais(dict_totais_ref, dict_totais_prop, soma_valor_global_ref, soma_valor_global_prop, valor_comprasnet):
+def construir_df_resumo_totais_globais(dict_totais_ref, dict_totais_prop, soma_valor_global_ref, soma_valor_global_prop, valor_comprasnet, desconto_total_final):
     resumo = {
         "Descrição": [
             "Valor Global da planilha de referência apresentado",
             "Valor Global da planilha proposta apresentado",
             "Valor Global da planilha proposta calculado",
-            "Valor apresentado no Comprasnet"
+            "Valor apresentado no Comprasnet",
+            "Desconto Total Final"
         ],
         "Valor": [
             soma_valor_global_ref,
             dict_totais_prop.get("Total Geral", 0),
             soma_valor_global_prop,
-            valor_comprasnet
+            valor_comprasnet,
+            desconto_total_final
         ]
     }
 

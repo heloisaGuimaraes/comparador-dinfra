@@ -111,6 +111,15 @@ def resumo_descontos(df):
     }
 
 
+def calcula_desconto_total_final(valor_ref, valor_prop):
+
+    if valor_ref == 0:
+        return 0
+
+    desconto_valor = valor_ref - valor_prop
+    desconto_percentual = (desconto_valor / valor_ref) * 100
+
+    return desconto_percentual
 
 def comparar_planilhas(df_ref, df_prop):
     relatorio = []

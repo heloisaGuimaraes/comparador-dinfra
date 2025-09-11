@@ -3,7 +3,7 @@ import math
 import re
 import pandas as pd
 import pyexcel_ods
-from comparador import comparar_planilhas
+from comparador import comparar_planilhas, calcula_desconto_total_final
 from leitor_planilha import carregar_planilha
 from relatorio import organizar_relatorio, destacar_itens, construir_df_resumo_totais_globais
 from io import BytesIO
@@ -42,7 +42,10 @@ def num_para_real(valor):
     # Formata em Real
     return f"R$ {valor_truncado:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-
+def num_para_percentual(valor):
+    return f"{valor:.2f}%".replace(".", ",")  
+    
+    
 def texto_para_float(valor):
     """
     Converte uma string com valores monetários em float.
@@ -80,6 +83,46 @@ def texto_para_float(valor):
         return 0.0
 
 
+        # Função helper para card colorido
+
+
+def metric_card(title, value, color, height):
+    st.markdown(
+        f"""
+        <div style="
+            background-color:{color};
+            padding:20px;
+            border-radius:10px;
+            text-align:center;
+            color:white;
+            font-weight:bold;
+            min-height:{height}px;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;">
+            <div style="font-size:18px;">{title}</div>
+            <div style="font-size:28px;">{value}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def renderiza_card(cards_valores):
+    max_len_valores = max(len(str(title)) + len(str(value)) for title, value, _ in cards_valores)
+    base_height_valores = 100
+    extra_per_char_valores = 2
+    common_height_valores = base_height_valores + (max_len_valores * extra_per_char_valores)
+
+    # 🔹 Renderiza os cards lado a lado
+    cols_valores = st.columns(len(cards_valores))
+    for col, (title, value, color) in zip(cols_valores, cards_valores):
+        with col:
+            metric_card(title, value, color, common_height_valores)
+    
+    
+    
+    
 st.set_page_config(page_title="DINFRA - Comparador de Orçamentos", layout="wide")
 
 st.title("📊 DINFRA - Comparador de Orçamentos")
@@ -129,6 +172,8 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
             with st.spinner("Comparando planilhas, por favor aguarde..."):
                 df_relatorio, df_itens_extras_prop, df_itens_ausentes_prop, df_descontos_problema, soma_valor_global_prop, soma_valor_global_ref, dict_resumo_descontos = comparar_planilhas(df_ref, df_prop)
                 df_relatorio = organizar_relatorio(df_relatorio)
+                desconto_total_final = calcula_desconto_total_final(soma_valor_global_ref, soma_valor_global_prop)
+                
         except Exception as e:
             st.error(f"❌ Erro ao comparar as planilhas: {e}.")
             st.stop()
@@ -139,7 +184,9 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
             dict_totais_prop,
             soma_valor_global_ref,
             soma_valor_global_prop,
-            valor_comprasnet
+            valor_comprasnet, 
+            desconto_total_final
+            
         )
         
         # -------------------
@@ -155,29 +202,17 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
         
         st.subheader("📌 Resumo da Verificação")
 
-        # Função helper para card colorido
-        def metric_card(title, value, color):
-            st.markdown(
-                f"""
-                <div style="
-                    background-color:{color};
-                    padding:20px;
-                    border-radius:10px;
-                    text-align:center;
-                    color:white;
-                    font-weight:bold;">
-                    <div style="font-size:18px;">{title}</div>
-                    <div style="font-size:28px;">{value}</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
 
-        col1, col2, col3, col4 = st.columns(4)
-        with col1: metric_card("Itens Totais da planilha de referência", total_itens, "#4CAF50")  # verde
-        with col2: metric_card("Itens Ausentes na planilha proposta", ausentes, "#F44336" if ausentes > 0 else "#4CAF50")
-        with col3: metric_card("Itens a mais ou com alguma divergência na descrição", para_analise, "#FF9800" if para_analise > 0 else "#4CAF50")
-        with col4: metric_card("Itens com desconto fora do padrão", descontos_altos, "#F44336" if descontos_altos > 0 else "#4CAF50")
+
+        # 🔹 Prepara os cards (título, valor, cor)
+        info_cards = [
+            ("Itens Totais da planilha de referência", total_itens, "#4CAF50"),
+            ("Itens Ausentes na planilha proposta", ausentes, "#F44336" if ausentes > 0 else "#4CAF50"),
+            ("Itens a mais ou com alguma divergência na descrição", para_analise, "#FF9800" if para_analise > 0 else "#4CAF50"),
+            ("Itens com desconto fora do padrão", descontos_altos, "#F44336" if descontos_altos > 0 else "#4CAF50"),
+        ]
+
+        renderiza_card(info_cards)
 
  
         # -------------------
@@ -192,14 +227,17 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
    
         
         st.subheader("📌 Valores Totais")
-  
-        col1, col2, col3, col4 = st.columns(4)
-        # with col1: metric_card("Valor Global da planilha de referência apresentado", para_real(dict_totais_ref.get("Total Geral", 0)), "#4CAF50")  # verde
-        with col1: metric_card("Valor Global da planilha referência apresentado",  num_para_real(soma_valor_global_ref), "#4CAF50")
-        with col2: metric_card("Valor Global da planilha proposta apresentado",  num_para_real(dict_totais_prop.get("Total Geral", 0)), "#F44336" if  dict_totais_prop.get("Total Geral", 0) > valor_comprasnet else "#4CAF50")
-        with col3: metric_card("Valor Global da planilha proposta calculado",  num_para_real(soma_valor_global_prop), "#F44336" if  soma_valor_global_prop > valor_comprasnet else "#4CAF50")
-        with col4: metric_card("Valor apresentado no Comprasnet", num_para_real(valor_comprasnet), "#F44336" if valor_comprasnet > soma_valor_global_prop else "#4CAF50")
-        
+        info_cards = [
+            ("Valor Global da planilha referência apresentado", num_para_real(soma_valor_global_ref), "#4CAF50"),
+            ("Valor Global da planilha proposta apresentado", num_para_real(dict_totais_prop.get("Total Geral", 0)), "#F44336" if dict_totais_prop.get("Total Geral", 0) > valor_comprasnet else "#4CAF50"),
+            ("Valor Global da planilha proposta calculado", num_para_real(soma_valor_global_prop), "#F44336" if soma_valor_global_prop > valor_comprasnet else "#4CAF50"),
+            ("Valor apresentado no Comprasnet", num_para_real(valor_comprasnet), "#F44336" if valor_comprasnet > soma_valor_global_prop else "#4CAF50"),
+            ("Valor Global do Desconto", num_para_percentual(desconto_total_final), "#F44336" if (desconto_total_final > 25 or desconto_total_final < 0) else "#4CAF50"),
+        ]
+
+        renderiza_card(info_cards)
+
+
         st.write("### 🟡 Itens de referência ausentes na Planilha de Proposta")
         st.dataframe(df_itens_ausentes_prop, use_container_width=True)   
         
