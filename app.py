@@ -257,10 +257,9 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
             df_valores_bdi_diferente_ref.to_excel(writer, index=False, sheet_name="BDI Diferente - Referencia")
             df_valores_bdi_diferente_prop.to_excel(writer, index=False, sheet_name="BDI Diferente - Proposta")
             # Planilhas originais
-            df_ref.to_excel(writer, index=False, sheet_name="Planilha de Referência")
-            df_prop.to_excel(writer, index=False, sheet_name="Planilha de Proposta")
-            
-            
+            df_ref.to_excel(writer, index=False, sheet_name="Orçamento de Referência")
+            df_prop.to_excel(writer, index=False, sheet_name="Orçamento de Proposta")
+
 
         # Volta o ponteiro para o início do arquivo
         output.seek(0)
