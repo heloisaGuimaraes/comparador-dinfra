@@ -113,7 +113,7 @@ def resumo_descontos(df):
 
 def calcula_desconto_total_final(valor_ref, valor_prop):
 
-    if valor_ref == 0:
+    if valor_ref == 0.0 or valor_prop == 0.0:
         return 0.0
 
     desconto_valor = valor_ref - valor_prop
