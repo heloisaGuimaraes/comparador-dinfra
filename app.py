@@ -89,7 +89,7 @@ st.subheader("Módulo Orçamento Sintético")
 st.write("##### Valor global da proposta conforme consta no Comprasnet:")
 valor_texto = st.text_input(
     "Digite o valor:",
-    placeholder="R$000,00", width=350, value=None
+    placeholder="R$00,00", width=350, value=None
 )
 
 # converte para float
