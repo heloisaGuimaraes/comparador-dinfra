@@ -14,18 +14,19 @@ def verifica_item(item_prop, item_ref):
         return False # Caso não possuam valores iguais
     return True # Caso possuam valores iguais
 
-def verifica_descricao(descricao_ref, props_dict):
+def verifica_descricao(descricao_ref, props_list):
     """
-    Verifica se descricao_ref bate com alguma chave do props_dict.
-    Se bater, remove o item do dicionário e retorna a linha.
+    Verifica se descricao_ref bate com alguma descricao em props_list.
+    Se bater, remove a primeira ocorrência da lista e retorna a linha.
     Se não, retorna None.
     """
     descricao_ref_clean = descricao_ref.lower().replace(" ", "")
-    for descricao_prop in list(props_dict.keys()):  # usar lista para iterar sem problemas
+    
+    for i, (descricao_prop, row) in enumerate(props_list):
         descricao_prop_clean = descricao_prop.lower().replace(" ", "")
         if descricao_ref_clean == descricao_prop_clean:
-            valor = props_dict.pop(descricao_prop)  # remove do dicionário original
-            return valor
+            return props_list.pop(i)[1]  # remove e retorna a linha (row)
+    
     return None
 
 def verifica_quantidade(qtd_ref, qtd_prop, limiar=0.95):
@@ -124,8 +125,8 @@ def calcula_desconto_total_final(valor_ref, valor_prop):
 def comparar_planilhas(df_ref, df_prop):
     relatorio = []
 
-    # Criar um dicionário para acesso rápido às propostas pela descrição
-    props_dict = {row['descricao']: row for _, row in df_prop.iterrows()}
+    # Criar uma listas das linhas para acesso rápido às propostas pela descrição
+    props_list = [[row['descricao'], row] for _, row in df_prop.iterrows()]
     # descricoes_ref = set(df_ref['descricao'])
 
 
@@ -147,7 +148,7 @@ def comparar_planilhas(df_ref, df_prop):
             'valor_total_ref': valor_total_ref,
         }
        
-        row_prop = verifica_descricao(descricao_ref, props_dict)
+        row_prop = verifica_descricao(descricao_ref, props_list)
         if row_prop is not None:
             # Acessando os valores da proposta
             item_prop = row_prop['item']
@@ -208,7 +209,7 @@ def comparar_planilhas(df_ref, df_prop):
     # -------------------
     # Itens extras (para analisar, pois estão com problema)
     # -------------------
-    extras_prop = pd.DataFrame(props_dict.values())
+    extras_prop = pd.DataFrame([row for _, row in props_list])
 
     # -------------------
     # Itens faltando na proposta 
