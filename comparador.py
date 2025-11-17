@@ -227,12 +227,10 @@ def comparar_planilhas(df_ref, df_prop):
     # -------------------
     
     df_relatorio = df_relatorio.dropna(subset=['valor_total_ref']) #Para remover os itens nulos
-    extras_prop = extras_prop.dropna(subset=['valor_total']) #Para remover os itens nulos
-    ausentes_prop = ausentes_prop.dropna(subset=['valor_total_ref']) #Para remover os itens nulos
-    descontos_prop = descontos_prop.dropna(subset=['valor_total_ref']) #Para remover os itens nulos
-
-
-
+    # extras_prop = extras_prop.dropna(subset=['valor_total'])
+    extras_prop = extras_prop.dropna(subset=['valor_total']) if not extras_prop.empty else extras_prop  #Para remover os itens nulos caso não esteja vazio
+    ausentes_prop = ausentes_prop.dropna(subset=['valor_total_ref']) if not ausentes_prop.empty else ausentes_prop  #Para remover os itens nulos caso não esteja vazio
+    descontos_prop = descontos_prop.dropna(subset=['valor_total_ref']) if not descontos_prop.empty else descontos_prop  #Para remover os itens nulos caso não esteja vazio
 
 
     return df_relatorio, extras_prop, ausentes_prop, descontos_prop, soma_valor_global_prop, soma_valor_global_ref, dict_resumo_descontos
