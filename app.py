@@ -239,13 +239,24 @@ if (ref_file and prop_file and valor_comprasnet != None and valor_comprasnet > 0
 
 
         st.write("### 🟡 Itens de referência ausentes na Planilha de Proposta")
-        st.dataframe(df_itens_ausentes_prop, use_container_width=True)   
+        if (not df_itens_ausentes_prop.empty):
+            st.dataframe(df_itens_ausentes_prop, use_container_width=True)   
+
+        else:
+            st.write("Nenhum item da planilha de referência ausente na planilha de proposta.")
+        
         
         st.write("### 🟡 Planilha de Proposta: Itens a mais ou com alguma divergência na descrição")
-        st.dataframe(df_itens_extras_prop, use_container_width=True)   
+        if (not df_itens_extras_prop.empty):
+            st.dataframe(df_itens_extras_prop, use_container_width=True)   
+        else:
+            st.write("Nenhum item a mais ou divergente encontrado na planilha de proposta.")
 
         st.write("### 🟡 Planilha de Proposta: Itens com desconto fora do padrão")
-        st.dataframe(df_descontos_problema, use_container_width=True)   
+        if (not df_descontos_problema.empty):
+            st.dataframe(df_descontos_problema, use_container_width=True)   
+        else:
+            st.write("Nenhum item com desconto fora do padrão foi encontrado na planilha de proposta.")
         
         st.divider()
         
