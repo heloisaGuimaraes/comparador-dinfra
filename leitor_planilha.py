@@ -30,7 +30,61 @@ def texto_para_numero(valor): # Função para converter texto em número float, 
         return float(token)
     except ValueError:
         return 0.0
+
+def texto_para_float(valor):
+    """
+    Limpa e converte uma string de valor monetário complexa para um float padrão.
+    Lida com formatos brasileiros (milhar.decimal,) e texto extra (BDI, %).
+    """
     
+    # 1. Trata valores nulos ou não-string
+    if valor is None or valor == False:
+        return 0.0
+    
+    if isinstance(valor, (float, int)):
+        return float(valor)
+
+    try:
+        texto = str(valor).strip()
+        
+        # 2. Remoção de Texto Extra (incluindo parênteses e BDI)
+        # Exemplo: "141.279,97 (BDI 15,21%)" -> "141.279,97"
+        
+        # Remove qualquer coisa entre parênteses
+        texto = re.sub(r'\s*\(.*\)\s*', '', texto).strip()
+        
+        # Remove caracteres/símbolos comuns
+        texto = texto.upper().replace('R$', '').replace('%', '').replace('BDI', '').strip()
+        
+        # 3. Tratamento de Separadores
+        
+        # Verifica se o formato é brasileiro (PONTO de milhar, VÍRGULA decimal)
+        # Ex: 141.279,97
+        if re.search(r'\d\.\d{3},\d{2}$', texto) or re.search(r'\d,\d{2}$', texto):
+            # Substitui ponto de milhar por nada
+            texto = texto.replace('.', '')
+            # Substitui a vírgula decimal por ponto
+            texto = texto.replace(',', '.')
+        
+        # Verifica se é formato brasileiro simples (sem milhar, vírgula decimal)
+        # Ex: 1.500,00
+        elif texto.count(',') == 1 and texto.count('.') == 0:
+             texto = texto.replace(',', '.')
+             
+        # Se for o formato americano (milhar, ponto.decimal), remove as vírgulas
+        # Ex: 1,526.20
+        elif texto.count('.') == 1 and texto.count(',') >= 1:
+            texto = texto.replace(',', '')
+        
+        # 4. Limpeza final e Conversão
+        texto = texto.replace(' ', '')
+        
+        return float(texto)
+        
+    except ValueError:
+        # Retorna 0.0 se a string final não puder ser convertida (ex: "NA")
+        return 0.0
+
 def encontrar_linhas_bdi_diferente(df, coluna_texto): #Função para encontrar as linhas que contém BDI diferente em valor unitário com BDI
     linhas_bdi = []
     
@@ -133,8 +187,8 @@ def carregar_planilha(caminho):
     df['descricao'] = df['descricao'].astype(str).str.strip() #ok
     df['quantidade'] = df['quantidade'].astype(float) #ok
     df['valor_unit'] = df['valor_unit'].astype(float) 
-    # df['valor_unit_bdi'] = df['valor_unit_bdi'].apply(texto_para_numero)
-    df['valor_total'] = df['valor_total'].astype(float) #ok
+    df['valor_unit_bdi'] = df['valor_unit_bdi'].apply(texto_para_float)
+    df['valor_total'] = df['valor_total'].apply(texto_para_float)
     
     df = df.dropna(subset=['valor_total']) #Para remover os itens nulos
     
