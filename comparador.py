@@ -103,11 +103,6 @@ def verifica_descricao_simples(descricao_ref, props_list):
     
     return None
 
-
-
-
-
-
 def verifica_quantidade(qtd_ref, qtd_prop, limiar=0.95):
     return qtd_ref == qtd_prop  # Considera iguais se forem exatamente iguais
 
@@ -140,33 +135,7 @@ def normaliza(texto: str) -> str: # Função para normalizar os textos
 # =============================================================COMPARADORES=============================================================
 
 
-def identificar_valor_total_planilhas_df(df, descricao_padrao):
-    """
-    Identifica a linha que contém a descrição padrão no DataFrame,
-    percorrendo de baixo para cima.
-    
-    Parâmetros:
-    - df: DataFrame carregado da planilha
-    - descricao_padrao: string que identifica a linha desejada
-    
-    Retorna:
-    - indice da linha no df
-    - lista com os valores não nulos da linha
-    """
-    desc_norm = descricao_padrao.strip().upper()  # normaliza descrição
 
-    # percorre de baixo para cima
-    for idx in reversed(df.index):
-        row = df.loc[idx]
-        valores = row.tolist()
-        # junta os valores não nulos em um texto
-        texto_linha = " ".join(str(v) for v in valores if v is not None)
-        if desc_norm in texto_linha.upper():
-            # retorna o índice e apenas os valores não nulos
-            linha_filtrada = [v for v in valores if v is not None]
-            return idx, linha_filtrada
-
-    return None
 
 def resumo_descontos(df):
     df_filtrado = df[df["desconto_prop"] != 0]
