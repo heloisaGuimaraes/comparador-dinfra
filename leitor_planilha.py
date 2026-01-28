@@ -1,8 +1,9 @@
 # Função para ler e preparar dados da planilha
 import re
-import math
 import pandas as pd
-from comparador import identificar_valor_total_planilhas_df #identificar_valor_total_planilhas
+
+
+# from comparador import identificar_valor_total_planilhas_df #identificar_valor_total_planilhas
 DESCRICAO_PADRAO_TOTAL_SEM_BDI = "Total sem BDI"  # ajuste para o que aparece na sua planilha
 DESCRICAO_PADRAO_TOTAL_BDI = "Total do BDI"  # ajuste para o que aparece na sua planilha
 DESCRICAO_PADRAO_TOTAL_GERAL = "Total Geral"  # ajuste para o que aparece na sua planilha
@@ -131,35 +132,82 @@ def normaliza_planilha(df, colunas_esperadas=COLUNAS_PLANILHA):
     df = df.reset_index(drop=True)
 
     return df
-    
-    
+     
 
+def identificar_valor_total_planilhas_df(df, descricao_padrao, nome_planilha=""):
+    """
+    Identifica a linha que contém a descrição padrão no DataFrame,
+    removendo espaços extras e normalizando o texto.
+    """
+    # 1. Normaliza a descrição: remove espaços e reduz múltiplos espaços internos a um só
+    desc_norm = " ".join(descricao_padrao.strip().upper().split())
+
+    # Percorre de baixo para cima
+    for idx in reversed(df.index):
+        row = df.loc[idx]
+        valores = row.tolist()
+        
+        # 2. Limpa cada valor: remove espaços de cada célula e ignora NaNs
+        valores_limpos = [str(v).strip() for v in valores if pd.notna(v)]
+        
+        # 3. Junta tudo em um único texto, também normalizando espaços internos
+        texto_linha = " ".join(valores_limpos).upper()
+        texto_linha_normalizado = " ".join(texto_linha.split())
+        
+        # 4. Comparação
+        if desc_norm in texto_linha_normalizado:
+            # Retorna o índice e os valores originais da linha (sem os NaNs)
+            linha_filtrada = [v for v in valores if pd.notna(v)]
+            return idx, linha_filtrada
+    #Lançar um erro se não encontrar
+    raise ValueError(f"O valor do {descricao_padrao} não foi encontrado na planilha {nome_planilha}. Verifique se a planilha está completa.")
+
+
+# --------------------------------------------------------------------
+# Função principal para carregar e preparar a planilha
+# --------------------------------------------------------------------
 def carregar_planilha(caminho):
     
     abas = pd.ExcelFile(caminho).sheet_names
-    aba_analisada = "Orçamento Sintético"
 
-    if aba_analisada not in abas:
-        raise ValueError(f"A aba '{aba_analisada}' não foi encontrada no arquivo. Abas disponíveis: {abas}")    
+    nome_planilha = caminho.name
+    # print(f"Caminho: {nome_planilha}")
+    # print(f"Abas encontradas na planilha: {abas}")
+
+
+    # Definimos uma lista com as variações comuns dos nomes das abas (todas em minúsculo)
+    termos_procurados = ["orçamento", "orcamento", "ocamento", "sintético"]
+
+    # Procuramos a aba: se o termo estiver dentro do nome da aba (convertida para minúsculo)
+    aba_analisada = next(
+        (s for s in abas if any(termo in s.lower() for termo in termos_procurados)), 
+        None
+    )
     
-    df = pd.read_excel(caminho, sheet_name=aba_analisada, header=None)
+    # Validação
+    if aba_analisada is None:
+        raise ValueError(f"Não foi possível encontrar uma aba de Orçamento Sintético. Abas disponíveis: {abas}. Verifique se a planilha está correta.")  
+    
+    df = pd.read_excel(caminho, sheet_name=aba_analisada, header=None, usecols="A:J")
     df = normaliza_planilha(df, COLUNAS_PLANILHA)
     
-    
-    idx_total_sem_bdi, valores_total_sem_bdi = identificar_valor_total_planilhas_df(df, DESCRICAO_PADRAO_TOTAL_SEM_BDI)
+    #Acessando os valores totais do fim da planilha
+    idx_total_geral, valores_total_geral = identificar_valor_total_planilhas_df(df, DESCRICAO_PADRAO_TOTAL_GERAL, nome_planilha)
+    # print(valores_total_geral)
+
     idx_total_bdi, valores_total_bdi = identificar_valor_total_planilhas_df(df, DESCRICAO_PADRAO_TOTAL_BDI)
-    idx_total_geral, valores_total_geral = identificar_valor_total_planilhas_df(df, DESCRICAO_PADRAO_TOTAL_GERAL)
+    # print(valores_total_bdi)
+
+    idx_total_sem_bdi, valores_total_sem_bdi = identificar_valor_total_planilhas_df(df, DESCRICAO_PADRAO_TOTAL_SEM_BDI, nome_planilha)
+    # print(valores_total_sem_bdi)
+
     # print(valores_total_geral, valores_total_sem_bdi, valores_total_bdi)
 
 
     linhas_com_totais = [valores_total_sem_bdi, valores_total_bdi, valores_total_geral]
-    # dict_totais = {item[0]: item[1] for item in linhas_com_totais}
-    dict_totais = {
-    linha_filtrada[0]: linha_filtrada[1]
-    for linha in linhas_com_totais
-    if (linha_filtrada := [v for v in linha if v is not None and (not isinstance(v, float) or not math.isnan(v))]) and len(linha_filtrada) >= 2
-    }
-    # print("Totais encontrados na planilha:", dict_totais)
+    
+    dict_totais = {item[0]: item[1] for item in linhas_com_totais}
+    # print("Totais encontrados na planilha:", aba_analisada, dict_totais)
     
     linhas_remover = [idx_total_geral, idx_total_bdi, idx_total_sem_bdi]
     linhas_df = [i for i in linhas_remover]
