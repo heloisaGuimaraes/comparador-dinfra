@@ -271,8 +271,8 @@ def comparar_planilhas(df_ref, df_prop):
     # -------------------
     # Somatório Total das colunas de Valor Total #TODO Fazzer um dict
     # -------------------
-    soma_valor_global_prop = df_prop.loc[~df_prop["item"].astype(str).str.contains("\."), "valor_total"].sum()
-    soma_valor_global_ref = df_ref.loc[~df_ref["item"].astype(str).str.contains("\."), "valor_total"].sum()
+    soma_valor_global_prop = df_prop.loc[~df_prop["item"].astype(str).str.contains(r"\."), "valor_total"].sum()
+    soma_valor_global_ref = df_ref.loc[~df_ref["item"].astype(str).str.contains(r"\."), "valor_total"].sum()
 
     # -------------------
     # Itens extras (para analisar, pois estão com problema)
@@ -554,7 +554,7 @@ def gerar_relatorio_final(df_ref, df_prop, divergencias_validadas):
      # -------------------
     # Somatório Total das colunas de Valor Total #TODO Fazzer um dict
     # -------------------
-    soma_valor_global_prop = df_prop.loc[~df_prop["item"].astype(str).str.contains("\."), "valor_total"].sum()
+    soma_valor_global_prop = df_prop.loc[~df_prop["item"].astype(str).str.contains(r"\."), "valor_total"].sum()
     soma_valor_global_ref = df_ref.loc[~df_ref["item"].astype(str).str.contains("\."), "valor_total"].sum()
 
     # -------------------
