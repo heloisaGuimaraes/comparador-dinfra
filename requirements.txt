@@ -7,3 +7,4 @@ odfpy
 xlsxwriter
 pyexcel_ods
 rapidfuzz
+numpy
