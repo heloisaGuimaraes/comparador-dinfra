@@ -8,8 +8,8 @@ from relatorio import salvar_relatorio
 
 def main():
     parser = argparse.ArgumentParser(description="Comparador de propostas orçamentárias.")
-    parser.add_argument('--ref', required=True, help='Arquivo de referência')
-    parser.add_argument('--prop', required=True, help='Arquivo da proposta')
+    parser.add_argument('--ref', required=True, help='Arquivo de referência - IFMA')
+    parser.add_argument('--prop', required=True, help='Arquivo da proposta - Empresa em Análise')
     parser.add_argument('--margem', type=float, default=0.05, help='Margem de tolerância percentual (padrão: 0.05)')
     parser.add_argument('--saida', default='relatorio.xlsx', help='Arquivo de saída do relatório')
 
